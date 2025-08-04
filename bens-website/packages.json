@@ -1,0 +1,14 @@
+{
+  "name": "bens-website",
+  "version": "1.0.0",
+  "description": "Live chat support site for Ben",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "sqlite3": "^5.1.6"
+  }
+}

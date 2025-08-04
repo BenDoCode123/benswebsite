@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ben's Website</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Ben's Website</h1>
+  <p>Front End Developer</p>
+
+  <div class="buttons">
+    <a href="https://d4m1bk.mimo.run/index.html"><button>Games</button></a>
+    <a href="https://usually-empty-noodle.instance.app"><button>Ecclesbourne Hub</button></a>
+    <a href="https://wadfnb.mimo.run/index.html"><button>Tab Overload</button></a>
+  </div>
+
+  <div id="chat-icon">💬</div>
+
+  <div id="chat-box" class="hidden">
+    <div id="messages"></div>
+    <input id="msg" placeholder="Type message..." autocomplete="off" />
+    <button onclick="sendMessage()">Send</button>
+    <div id="login">
+      <input id="name" placeholder="Name (Ben?)" />
+      <input id="password" type="password" placeholder="Password" />
+      <button onclick="login()">Login</button>
+    </div>
+    <div id="admin-panel" class="hidden">
+      <button onclick="getMessages()">View All Messages</button>
+      <div id="admin-messages"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
