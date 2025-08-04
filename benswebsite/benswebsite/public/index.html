@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ben's Website with Live Chat</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Ben's Website</h1>
+    <nav>
+      <a href="https://d4m1bk.mimo.run/index.html"><button class="game-button">Games</button></a>
+      <a href="https://usually-empty-noodle.instance.app"><button class="game-button">Ecclesbourne<br> Hub</button></a>
+      <a href="https://wadfnb.mimo.run/index.html"><button class="game-button">Tab Overload</button></a>
+    </nav>
+  </header>
+
+  <!-- Chat Icon -->
+  <div id="chat-container">
+    <button id="chat-toggle" aria-label="Toggle chat">💬 Chat Support</button>
+    <div id="chat-box" class="hidden">
+      <div id="messages"></div>
+      <form id="chat-form">
+        <input id="chat-input" autocomplete="off" placeholder="Type your message..." />
+        <button type="submit">Send</button>
+      </form>
+      <button id="login-btn">Login as Ben</button>
+      <div id="login-section" class="hidden">
+        <input id="username-input" placeholder="Username" />
+        <input id="password-input" type="password" placeholder="Password" />
+        <button id="login-submit">Login</button>
+        <p id="login-error" style="color:red;"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>

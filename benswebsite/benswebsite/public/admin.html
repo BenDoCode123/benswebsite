@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Panel - Ben's Website</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  body { padding: 20px; }
+  #adminMessages {
+    height: 400px;
+    overflow-y: auto;
+    background: #222;
+    padding: 15px;
+    border-radius: 12px;
+    color: white;
+  }
+  .message.admin { color: #ff6f61; }
+  .message.guest { color: #6fc3ff; }
+  #adminForm { margin-top: 10px; display: flex; }
+  #adminInput {
+    flex-grow: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+  }
+  #adminForm button {
+    padding: 10px 20px;
+    background: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+  #adminForm button:hover {
+    background: #27ae60;
+  }
+</style>
+</head>
+<body>
+<h2>Admin Panel</h2>
+<div id="adminMessages"></div>
+<form id="adminForm">
+  <input id="adminInput" autocomplete="off" placeholder="Type your message..." />
+  <button type="submit">Send</button>
+</form>
+<script src="/socket.io/socket.io.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
