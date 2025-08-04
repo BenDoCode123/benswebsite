@@ -1,5 +1,5 @@
 {
-  "name": "benswebsite",
+  "name": "bens-support-chat",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.7.1",
+    "socket.io": "^4.7.2",
     "sqlite3": "^5.1.6"
   }
 }
