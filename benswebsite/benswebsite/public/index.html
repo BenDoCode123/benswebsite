@@ -3,39 +3,105 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ben's Website with Live Chat</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Ben's Support Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e3f2fd; margin: 0; }
+    #login, #chat { max-width: 400px; margin: 50px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+    #chat { display: none; }
+    input, button { padding: 10px; width: 100%; margin: 8px 0; font-size: 16px; border-radius: 4px; border: 1px solid #90caf9; }
+    button { background: #2196f3; color: white; border: none; cursor: pointer; }
+    button:hover { background: #1976d2; }
+    #messages { height: 300px; overflow-y: auto; border: 1px solid #90caf9; padding: 10px; background: #e3f2fd; border-radius: 4px; }
+    .message { margin-bottom: 10px; }
+    .message .sender { font-weight: bold; }
+    .message .text { margin-left: 10px; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Ben's Website</h1>
-    <nav>
-      <a href="https://d4m1bk.mimo.run/index.html"><button class="game-button">Games</button></a>
-      <a href="https://usually-empty-noodle.instance.app"><button class="game-button">Ecclesbourne<br> Hub</button></a>
-      <a href="https://wadfnb.mimo.run/index.html"><button class="game-button">Tab Overload</button></a>
-    </nav>
-  </header>
 
-  <!-- Chat Icon -->
-  <div id="chat-container">
-    <button id="chat-toggle" aria-label="Toggle chat">💬 Chat Support</button>
-    <div id="chat-box" class="hidden">
-      <div id="messages"></div>
-      <form id="chat-form">
-        <input id="chat-input" autocomplete="off" placeholder="Type your message..." />
-        <button type="submit">Send</button>
-      </form>
-      <button id="login-btn">Login as Ben</button>
-      <div id="login-section" class="hidden">
-        <input id="username-input" placeholder="Username" />
-        <input id="password-input" type="password" placeholder="Password" />
-        <button id="login-submit">Login</button>
-        <p id="login-error" style="color:red;"></p>
-      </div>
-    </div>
-  </div>
+<div id="login">
+  <h2>Login to Support</h2>
+  <input id="username" placeholder="Username" />
+  <input id="password" placeholder="Password" type="password" />
+  <button id="loginBtn">Login</button>
+  <p id="loginError" style="color:red;"></p>
+</div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="chat.js"></script>
+<div id="chat">
+  <h2>Support Chat</h2>
+  <div id="messages"></div>
+  <input id="msgInput" placeholder="Type your message..." />
+  <button id="sendBtn">Send</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  let userId, username, isAdmin, ticketId;
+
+  document.getElementById('loginBtn').onclick = () => {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value.trim();
+    if(!u || !p) return alert('Enter username and password');
+
+    fetch('/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username: u, password: p})
+    }).then(res => res.json())
+      .then(data => {
+        if(data.success){
+          userId = data.userId;
+          username = u;
+          isAdmin = data.isAdmin;
+          if(isAdmin){
+            window.location.href = '/admin.html';
+            return;
+          }
+          // For user: find ticketId
+          // We do a quick fetch to get ticket id for user:
+          fetch('/admin/tickets').then(r => r.json()).then(tickets => {
+            const t = tickets.find(t => t.username === username);
+            ticketId = t ? t.ticketId : null;
+            startChat();
+          });
+        } else {
+          document.getElementById('loginError').textContent = data.message || 'Login failed';
+        }
+      });
+  };
+
+  function startChat(){
+    if(!ticketId){
+      alert('Ticket not found for user, contact admin.');
+      return;
+    }
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('chat').style.display = 'block';
+
+    socket.emit('join', { userId, username, isAdmin });
+    socket.emit('start_ticket', ticketId);
+
+    socket.on('new_message', ({ sender, message, timestamp }) => {
+      addMessage(sender, message);
+    });
+
+    document.getElementById('sendBtn').onclick = () => {
+      const msg = document.getElementById('msgInput').value.trim();
+      if(!msg) return;
+      socket.emit('send_message', { ticketId, message: msg });
+      document.getElementById('msgInput').value = '';
+    };
+  }
+
+  function addMessage(sender, message){
+    const container = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.classList.add('message');
+    div.innerHTML = `<span class="sender">${sender}:</span><span class="text">${message}</span>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+</script>
 </body>
 </html>
