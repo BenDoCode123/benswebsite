@@ -3,51 +3,116 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Admin Panel - Ben's Website</title>
-<link rel="stylesheet" href="style.css" />
+<title>Admin Panel - Support Chat</title>
 <style>
-  body { padding: 20px; }
-  #adminMessages {
-    height: 400px;
-    overflow-y: auto;
-    background: #222;
-    padding: 15px;
-    border-radius: 12px;
-    color: white;
-  }
-  .message.admin { color: #ff6f61; }
-  .message.guest { color: #6fc3ff; }
-  #adminForm { margin-top: 10px; display: flex; }
-  #adminInput {
-    flex-grow: 1;
-    padding: 10px;
-    border-radius: 12px;
-    border: none;
-    font-size: 14px;
-  }
-  #adminForm button {
-    padding: 10px 20px;
-    background: #2ecc71;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-left: 10px;
-  }
-  #adminForm button:hover {
-    background: #27ae60;
-  }
+  body { font-family: Arial, sans-serif; background: #e3f2fd; margin: 0; }
+  #login, #adminPanel { max-width: 700px; margin: 30px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+  #adminPanel { display: none; }
+  input, button, select { padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #90caf9; }
+  button { background: #2196f3; color: white; border: none; cursor: pointer; }
+  button:hover { background: #1976d2; }
+  #tickets { margin-bottom: 15px; }
+  #messages { height: 300px; overflow-y: auto; border: 1px solid #90caf9; padding: 10px; background: #e3f2fd; border-radius: 4px; }
+  .message { margin-bottom: 10px; }
+  .message .sender { font-weight: bold; }
+  .message .text { margin-left: 10px; }
 </style>
 </head>
 <body>
-<h2>Admin Panel</h2>
-<div id="adminMessages"></div>
-<form id="adminForm">
-  <input id="adminInput" autocomplete="off" placeholder="Type your message..." />
-  <button type="submit">Send</button>
-</form>
+
+<div id="login">
+  <h2>Admin Login</h2>
+  <input id="adminCode" placeholder="Enter admin code" type="password" />
+  <button id="adminLoginBtn">Login</button>
+  <p id="loginError" style="color:red;"></p>
+</div>
+
+<div id="adminPanel">
+  <h2>Admin Panel - Support Tickets</h2>
+  <select id="tickets"></select>
+  <div id="messages"></div>
+  <input id="replyInput" placeholder="Type your reply..." />
+  <button id="sendReplyBtn">Send Reply</button>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
-<script src="admin.js"></script>
+<script>
+  const socket = io();
+  let currentTicketId = null;
+  const adminCode = '7453';
+
+  document.getElementById('adminLoginBtn').onclick = () => {
+    const code = document.getElementById('adminCode').value.trim();
+    if(code === adminCode){
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      fetchTickets();
+      socket.emit('join', { userId: 0, username: 'admin', isAdmin: true });
+    } else {
+      document.getElementById('loginError').textContent = 'Wrong admin code';
+    }
+  };
+
+  function fetchTickets(){
+    fetch('/admin/tickets')
+      .then(res => res.json())
+      .then(tickets => {
+        const select = document.getElementById('tickets');
+        select.innerHTML = '';
+        tickets.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.ticketId;
+          opt.textContent = t.username;
+          select.appendChild(opt);
+        });
+        if(tickets.length) {
+          currentTicketId = tickets[0].ticketId;
+          loadMessages(currentTicketId);
+          socket.emit('start_ticket', currentTicketId);
+        }
+      });
+  }
+
+  document.getElementById('tickets').onchange = (e) => {
+    currentTicketId = e.target.value;
+    loadMessages(currentTicketId);
+    socket.emit('start_ticket', currentTicketId);
+  };
+
+  function loadMessages(ticketId){
+    fetch(`/admin/tickets/${ticketId}/messages`)
+      .then(res => res.json())
+      .then(messages => {
+        const container = document.getElementById('messages');
+        container.innerHTML = '';
+        messages.forEach(m => {
+          const div = document.createElement('div');
+          div.classList.add('message');
+          div.innerHTML = `<span class="sender">${m.sender}:</span><span class="text">${m.message}</span>`;
+          container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight;
+      });
+  }
+
+  document.getElementById('sendReplyBtn').onclick = () => {
+    const reply = document.getElementById('replyInput').value.trim();
+    if(!reply || !currentTicketId) return;
+    socket.emit('send_message', { ticketId: currentTicketId, message: reply });
+    document.getElementById('replyInput').value = '';
+  };
+
+  socket.on('new_message', ({ sender, message, ticketId: tId }) => {
+    if(tId == currentTicketId || !tId) {
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.classList.add('message');
+      div.innerHTML = `<span class="sender">${sender}:</span><span class="text">${message}</span>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+</script>
+
 </body>
 </html>
